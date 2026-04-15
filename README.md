@@ -80,6 +80,8 @@ ASO Connect includes a `/aso-optimize` slash command that runs a full optimizati
 /aso-optimize com.example.myapp us,de,fr
 ```
 
+When optimizing for multiple countries, the skill runs the full pipeline for each locale separately with language-specific keywords - German users search in German, French users in French, etc. It won't just translate your English keywords.
+
 The skill is at `.claude/skills/aso-optimize/SKILL.md` and is automatically available when you open the project in Claude Code.
 
 ## Example workflow
