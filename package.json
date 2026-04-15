@@ -24,7 +24,7 @@
     "type": "git",
     "url": "https://github.com/szlaskidaniel/aso-connect.git"
   },
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
     "jose": "^5.9.0"

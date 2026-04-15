@@ -134,6 +134,12 @@ Claude: [runs multiple score_keyword calls]
 You:    Update my keywords with those
 Claude: [validates constraints, then pushes to App Store Connect]
         Done - keywords updated.
+
+You:    Update what's new section for all localizations (in their languages) "Minor corrections"
+Claude: Done. "What's New" updated for all three locales:
+        - en-US: Minor corrections.
+        - pl: Drobne poprawki.
+        - de-DE: Kleinere Korrekturen.
 ```
 
 ## How scoring works
@@ -152,7 +158,6 @@ Keywords are classified as: Sweet Spot, Hidden Gem, Good Target, Moderate, High 
 
 ## Notes
 
-- Keywords/description updates require a version in PREPARE_FOR_SUBMISSION state
 - Promotional text can be updated on live versions without review
 - Name/subtitle changes always require Apple review
 - iTunes API rate limit: 1 req/sec (built into the batch tool)
@@ -164,7 +169,7 @@ Built by [Daniel Szlaski](https://danielszlaski.com) - indie iOS developer.
 
 ## License
 
-MIT
+AGPL-3.0
 
 ---
 
