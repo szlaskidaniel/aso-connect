@@ -15,6 +15,15 @@
     "keywords",
     "ios"
   ],
+  "author": {
+    "name": "Daniel Szlaski",
+    "url": "https://danielszlaski.com"
+  },
+  "homepage": "https://github.com/szlaskidaniel/aso-connect",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/szlaskidaniel/aso-connect.git"
+  },
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
