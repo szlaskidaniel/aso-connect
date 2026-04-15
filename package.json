@@ -1,0 +1,23 @@
+{
+  "name": "aso-connect",
+  "version": "1.0.0",
+  "description": "ASO keyword analysis + App Store Connect API - MCP server for Claude Code",
+  "type": "module",
+  "scripts": {
+    "start": "node mcp-server.js"
+  },
+  "keywords": [
+    "aso",
+    "app-store-optimization",
+    "app-store-connect",
+    "mcp",
+    "claude-code",
+    "keywords",
+    "ios"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "jose": "^5.9.0"
+  }
+}

@@ -1,0 +1,7 @@
+node_modules/
+*.p8
+.env
+.env.*
+.DS_Store
+*.log
+.claude/
