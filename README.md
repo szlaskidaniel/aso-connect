@@ -1,16 +1,25 @@
 # ASO Connect
 
-**App Store Optimization toolkit for Claude Code** - keyword research, competitor analysis, and metadata management through App Store Connect, all from your terminal.
+**Fully automated App Store Optimization for developers.** One command - and Claude fetches your current metadata from App Store Connect, researches and scores keywords, optimizes your title/subtitle/keywords, and pushes the updates back to App Store Connect. No manual work, no context switching.
 
-ASO Connect is an [MCP server](https://modelcontextprotocol.io/) that gives Claude Code (or any MCP client) the ability to score keywords, analyze competitors, and push metadata updates directly to App Store Connect.
+ASO Connect is an [MCP server](https://modelcontextprotocol.io/) that gives Claude Code the tools to handle the entire ASO workflow end-to-end - from pulling your live metadata to pushing optimized updates - so you can focus on building your app instead of researching keywords.
 
 ## Why
 
-Most ASO tools cost $50-200/month, lock you into a web UI, and still require manual copy-pasting into App Store Connect. ASO Connect gives you:
+ASO is important but tedious. You have to research keywords, cross-reference competitors, check character limits, and then manually copy everything into App Store Connect - for every locale, every update. Most paid tools ($50-200/month) still require you to do the copy-pasting yourself.
 
+ASO Connect eliminates all of that:
+
+- **Zero manual work** - Claude pulls your current metadata, analyzes it, finds better keywords, and pushes changes directly to App Store Connect in one conversation
 - **Free keyword scoring** - popularity, difficulty, and opportunity scores powered by iTunes Search API data
-- **Direct App Store Connect integration** - read and update titles, subtitles, keywords, descriptions without leaving your terminal
-- **AI-native workflow** - Claude analyzes your keywords, suggests improvements, validates constraints, and pushes changes in one conversation
+- **Multi-locale in one go** - optimizes each language with native keywords (not translations), creating locale localizations automatically when needed
+- **Full App Store Connect integration** - reads and writes titles, subtitles, keywords, descriptions, and promotional text without you ever opening a browser
+
+## Prerequisites
+
+- **[Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)** - ASO Connect runs as an MCP server inside Claude Code. You need an active Claude Code subscription (Max, Team, or Enterprise) or API credits with Anthropic.
+- **Token usage** - all keyword research, analysis, and optimization runs on your Claude tokens. ASO Connect is a free tool, but the AI usage it drives is billed to your account. We are not responsible for token consumption - heavier workflows (multi-locale, large keyword sets) will use more tokens.
+- **Node.js 18+**
 
 ## Quick start
 
@@ -72,7 +81,7 @@ claude mcp add aso-connect \
 
 ## Claude Code skill
 
-ASO Connect includes a `/aso-optimize` slash command that runs a full optimization pipeline - fetches your current metadata, scores keywords, finds better alternatives, optimizes title/subtitle/keywords, and pushes changes to App Store Connect after confirmation.
+ASO Connect includes a `/aso-optimize` slash command that runs the entire optimization pipeline automatically - from fetching your current metadata to pushing updated keywords back to App Store Connect. What normally takes hours of manual research and copy-pasting happens in a single conversation.
 
 ```
 /aso-optimize com.example.myapp
@@ -85,6 +94,28 @@ When optimizing for multiple countries, the skill runs the full pipeline for eac
 The skill is at `.claude/skills/aso-optimize/SKILL.md` and is automatically available when you open the project in Claude Code.
 
 ## Example workflow
+
+### One-command optimization
+
+```
+You:    /aso-optimize com.example.habitapp
+Claude: [fetches current metadata from App Store Connect]
+        [scores your existing keywords - finds 3 are high competition]
+        [researches 40+ alternatives, scores each one]
+        [optimizes title, subtitle, and keyword field]
+        [validates everything fits App Store constraints]
+        Here's what I'd change:
+          Title: "Habit Streaks - Daily Routine Tracker" (was: "My Habit App")
+          Subtitle: "Build routines & track goals" (was: "Track your habits")
+          Keywords: habit streaks,routine planner,daily goals,...
+        Push these updates to App Store Connect?
+
+You:    Yes
+Claude: [pushes updates directly to App Store Connect]
+        Done - metadata updated for v2.1.
+```
+
+### Step-by-step (if you prefer more control)
 
 ```
 You:    Score my current keywords: "habit tracker,daily routine,goals"
@@ -101,8 +132,8 @@ Claude: [runs multiple score_keyword calls]
         ...
 
 You:    Update my keywords with those
-Claude: [runs validate_metadata, then asc_update_version_localization]
-        Done - keywords updated in App Store Connect.
+Claude: [validates constraints, then pushes to App Store Connect]
+        Done - keywords updated.
 ```
 
 ## How scoring works

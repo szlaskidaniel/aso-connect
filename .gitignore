@@ -1,5 +1,6 @@
 node_modules/
 *.p8
+custom.md
 .env
 .env.*
 .DS_Store
