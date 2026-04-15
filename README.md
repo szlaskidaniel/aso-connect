@@ -53,6 +53,12 @@ claude mcp add aso-connect \
   -- node /path/to/aso-connect/mcp-server.js
 ```
 
+## Security - your keys never leave your machine
+
+Unlike SaaS ASO tools that require you to upload your App Store Connect API key to a third-party server, ASO Connect runs entirely on your machine. Your `.p8` file stays local, JWT signing happens locally, and API calls go directly from your machine to Apple. There is no middleman, no server, and no third-party ever sees your credentials.
+
+This matters because ASO Connect needs an **App Manager** key - a high-privilege credential that can modify your app metadata. With a local MCP server, you get full write access to App Store Connect without trusting anyone else with your keys.
+
 ## Tools
 
 ### ASO Analysis (no credentials needed)
