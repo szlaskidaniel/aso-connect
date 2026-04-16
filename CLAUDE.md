@@ -10,25 +10,15 @@ ASO keyword analysis + App Store Connect API in a single MCP server.
 npm install
 ```
 
-### 2. Generate App Store Connect API key
+### 2. Add App Store Connect credentials (optional)
 
 1. Go to [App Store Connect > Users and Access > Integrations > App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api)
 2. Click "+" to generate a new key with **App Manager** role
-3. Download the `.p8` file (one-time download)
-4. Note the **Key ID** and **Issuer ID**
-
-### 3. Register MCP server with Claude Code
-
-```bash
-claude mcp add aso-connect \
-  -e ASC_KEY_ID=YOUR_KEY_ID \
-  -e ASC_ISSUER_ID=YOUR_ISSUER_ID \
-  -e ASC_PRIVATE_KEY_PATH=/path/to/AuthKey_XXXX.p8 \
-  -- node /path/to/aso-connect/mcp-server.js
-```
+3. Download the `.p8` file (one-time download) and place it in the project root
+4. Run `node setup.js` - it auto-detects the key file and extracts the Key ID
 
 ASO analysis tools (score_keyword, score_keywords_batch, etc.) work without credentials.
-App Store Connect tools (asc_*) require the env vars above.
+App Store Connect tools (asc_*) require the setup above.
 
 ## Tools
 

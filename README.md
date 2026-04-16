@@ -37,12 +37,22 @@ That's it - you can now ask Claude to score keywords and analyze competitors.
 
 ### Adding App Store Connect access
 
-To read/write metadata directly from App Store Connect:
+To read/write metadata directly from App Store Connect, you need an API key from Apple:
 
 1. Go to [App Store Connect > Users and Access > Integrations > App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api)
 2. Generate a new key with **App Manager** role
-3. Download the `.p8` file and note the **Key ID** and **Issuer ID**
-4. Re-register with credentials:
+3. Download the `.p8` file and note the **Issuer ID**
+4. Place the `.p8` file in the project root folder
+5. Run the setup script:
+
+```bash
+node setup.js
+```
+
+The setup script will auto-detect the `.p8` file, extract the Key ID from the filename, and register the MCP server with your credentials - you only need to enter the Issuer ID.
+
+<details>
+<summary>Manual setup (if you prefer)</summary>
 
 ```bash
 claude mcp remove aso-connect
@@ -52,6 +62,10 @@ claude mcp add aso-connect \
   -e ASC_PRIVATE_KEY_PATH=/path/to/AuthKey_XXXX.p8 \
   -- node /path/to/aso-connect/mcp-server.js
 ```
+
+</details>
+
+> **Note:** Apple's App Store Connect API only supports authentication via p8 API keys - there is no way to use Xcode credentials or Apple ID sessions. Your key stays local and never leaves your machine (see [Security](#security---your-keys-never-leave-your-machine)).
 
 ## Security - your keys never leave your machine
 
