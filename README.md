@@ -14,6 +14,10 @@ ASO Connect eliminates all of that:
 - **Free keyword scoring** - popularity, difficulty, and opportunity scores powered by iTunes Search API data
 - **Multi-locale in one go** - optimizes each language with native keywords (not translations), creating locale localizations automatically when needed
 - **Full App Store Connect integration** - reads and writes titles, subtitles, keywords, descriptions, and promotional text without you ever opening a browser
+- **Local history tracking** - every metadata change is logged with before/after diffs so you can see what changed and when
+- **Keyword rank monitoring** - track where your app ranks in iTunes Search results for each keyword, with noise-filtered movement detection
+- **Category chart tracking** - monitor your position in App Store top charts (overall and by genre) via Apple's RSS feeds
+- **Churn prevention** - hysteresis rules prevent replacing keywords that haven't had enough time to prove themselves, unless rank data shows decline
 
 ## Prerequisites
 
@@ -86,18 +90,51 @@ This matters because ASO Connect needs an **App Manager** key - a high-privilege
 
 ### App Store Connect (requires API key)
 
-| Tool                               | What it does                                            |
-| ---------------------------------- | ------------------------------------------------------- |
-| `asc_lookup_app`                   | Find your app by bundle ID                              |
-| `asc_get_versions`                 | List versions, filter by state                          |
-| `asc_create_version`               | Create a new version (PREPARE_FOR_SUBMISSION)           |
-| `asc_get_version_localizations`    | Get keywords/description/whatsNew per locale            |
-| `asc_create_version_localization`  | Add a new locale to a version                           |
-| `asc_update_version_localization`  | Update keywords, description, whatsNew, promotionalText |
-| `asc_get_app_info_localizations`   | Get name/subtitle per locale                            |
-| `asc_create_app_info_localization` | Add a new locale for app info                           |
-| `asc_update_app_info_localization` | Update name and/or subtitle                             |
-| `asc_get_current_metadata`         | Fetch all current metadata for a bundle ID in one call  |
+| Tool                               | What it does                                                              |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| `asc_lookup_app`                   | Find your app by bundle ID                                                |
+| `asc_get_versions`                 | List versions, filter by state                                            |
+| `asc_create_version`               | Create a new version (PREPARE_FOR_SUBMISSION)                             |
+| `asc_get_version_localizations`    | Get keywords/description/whatsNew per locale                              |
+| `asc_create_version_localization`  | Add a new locale to a version                                             |
+| `asc_update_version_localization`  | Update keywords, description, whatsNew, promotionalText (with change log) |
+| `asc_get_app_info_localizations`   | Get name/subtitle per locale                                              |
+| `asc_create_app_info_localization` | Add a new locale for app info                                             |
+| `asc_update_app_info_localization` | Update name and/or subtitle (with change log)                             |
+| `asc_get_current_metadata`         | Fetch all current metadata for a bundle ID in one call                    |
+
+### History & Introspection (local SQLite, no credentials needed)
+
+| Tool                              | What it does                                                    |
+| --------------------------------- | --------------------------------------------------------------- |
+| `aso_db_stats`                    | Overview of local history DB - tracked apps, change counts      |
+| `aso_get_change_history`          | Metadata change log for an app (what changed, when, by whom)    |
+| `aso_get_active_keywords_with_age`| Active keywords with age in days and last scores                |
+| `aso_get_keyword_score_history`   | Current state + score time-series for a specific keyword        |
+| `aso_snapshot_keywords`           | Score keywords and save snapshots for trend analysis            |
+| `aso_keyword_trend`               | Score time-series showing how a keyword changed over time       |
+
+### Rank Tracking (iTunes Search API, no credentials needed)
+
+| Tool                       | What it does                                                         |
+| -------------------------- | -------------------------------------------------------------------- |
+| `aso_track_keyword`        | Add a keyword to rank tracking (immediately fetches initial rank)    |
+| `aso_track_active_keywords`| Bulk-add all active keywords for an app+locale to rank tracking      |
+| `aso_untrack_keyword`      | Remove keyword from tracking (historical data preserved)             |
+| `aso_refresh_ranks`        | Fetch current ranks for tracked keywords (skips recently refreshed)  |
+| `aso_get_rank_history`     | Rank time-series for a single keyword                                |
+| `aso_get_rank_movements`   | Detect meaningful rank changes with noise filtering                  |
+
+### Category Chart Tracking (Apple RSS feeds, no credentials needed)
+
+| Tool                            | What it does                                                    |
+| ------------------------------- | --------------------------------------------------------------- |
+| `aso_track_chart`               | Start tracking app position in a category chart                 |
+| `aso_track_app_categories`      | Bulk-add chart tracking across multiple countries               |
+| `aso_refresh_category_ranks`    | Fetch current chart positions (skips recently refreshed)        |
+| `aso_get_category_rank_history` | Chart position time-series                                      |
+| `aso_get_category_movements`    | Detect meaningful chart position changes                        |
+| `aso_category_snapshot`         | Current position across all tracked charts for an app           |
 
 ## Claude Code skill
 
@@ -182,6 +219,37 @@ Keywords are classified as: Sweet Spot, Hidden Gem, Good Target, Moderate, High 
 - Name/subtitle changes always require Apple review
 - iTunes API rate limit: 1 req/sec (built into the batch tool)
 - JWT tokens auto-refresh (15-min lifetime)
+- Local history is stored in `.aso-connect/aso.db` (SQLite, gitignored) - every metadata change is logged automatically when you pass `bundleId` to update tools
+- Active keywords and their scores persist across sessions - `score_keywords_batch` auto-caches results
+- Keywords active less than 30 days are protected from replacement unless rank data shows decline (hysteresis)
+- Rank tracking uses iTunes Search API (proxy signal, not ground truth) - reliable for detecting movement, not absolute position
+- Category chart tracking uses Apple's public RSS feeds (ground truth for top charts)
+- For daily unattended rank/chart updates: `node scripts/refresh-all.js` (see cron setup below)
+
+### Scheduled rank refresh
+
+`scripts/refresh-all.js` is a standalone script that refreshes all keyword ranks and category chart positions for every tracked app. On each run it:
+
+1. Auto-promotes any active keywords to rank tracking (so new keywords get picked up automatically)
+2. Auto-tracks the overall top-free chart for each country you have active keywords in
+3. Fetches current iTunes Search ranks for all tracked keywords (skips any refreshed within the last 20 hours)
+4. Fetches current category chart positions (same staleness window)
+
+Set it up as a cron job for unattended daily updates:
+
+```bash
+# Open your crontab
+crontab -e
+
+# Add this line (adjust the node path and project path to match your system)
+# This example runs at 9am on weekdays (Mon-Fri)
+0 9 * * 1-5 cd /path/to/aso-connect && /path/to/node scripts/refresh-all.js >> .aso-connect/cron.log 2>&1
+
+# Find your node path with: which node
+# Logs are written to .aso-connect/cron.log (gitignored)
+```
+
+> **Note:** Your machine needs to be awake when the cron fires. If it's asleep, that day's run is skipped - the next run will catch up since the staleness window is 20 hours.
 
 ## Author
 

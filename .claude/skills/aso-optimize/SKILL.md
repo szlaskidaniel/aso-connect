@@ -2,7 +2,7 @@
 name: aso-optimize
 description: End-to-end ASO optimization - fetches current metadata from App Store Connect, runs keyword analysis, optimizes title/subtitle/keywords, and pushes updates after confirmation. Usage - /aso-optimize com.example.myapp
 argument-hint: <bundleId> [countries] (e.g. com.example.myapp us or com.example.myapp us,de,fr)
-allowed-tools: mcp__aso-connect__score_keyword, mcp__aso-connect__score_keywords_batch, mcp__aso-connect__validate_metadata, mcp__aso-connect__get_competitors, mcp__aso-connect__asc_lookup_app, mcp__aso-connect__asc_get_versions, mcp__aso-connect__asc_create_version, mcp__aso-connect__asc_get_version_localizations, mcp__aso-connect__asc_update_version_localization, mcp__aso-connect__asc_get_app_info_localizations, mcp__aso-connect__asc_update_app_info_localization, mcp__aso-connect__asc_get_current_metadata, mcp__aso-connect__asc_create_version_localization, mcp__aso-connect__asc_create_app_info_localization, AskUserQuestion
+allowed-tools: mcp__aso-connect__score_keyword, mcp__aso-connect__score_keywords_batch, mcp__aso-connect__validate_metadata, mcp__aso-connect__get_competitors, mcp__aso-connect__asc_lookup_app, mcp__aso-connect__asc_get_versions, mcp__aso-connect__asc_create_version, mcp__aso-connect__asc_get_version_localizations, mcp__aso-connect__asc_update_version_localization, mcp__aso-connect__asc_get_app_info_localizations, mcp__aso-connect__asc_update_app_info_localization, mcp__aso-connect__asc_get_current_metadata, mcp__aso-connect__asc_create_version_localization, mcp__aso-connect__asc_create_app_info_localization, mcp__aso-connect__aso_get_active_keywords_with_age, mcp__aso-connect__aso_get_change_history, mcp__aso-connect__aso_get_rank_movements, mcp__aso-connect__aso_track_active_keywords, mcp__aso-connect__aso_get_category_movements, mcp__aso-connect__aso_category_snapshot, AskUserQuestion
 effort: high
 ---
 
@@ -65,6 +65,26 @@ Rules:
    - Whether an editable version exists
    - Whether the requested locale exists (if not, note it will be created when pushing)
 4. Save the localization IDs and the appInfoId - you'll need them for pushing updates later
+
+### Phase 1b - Review History & Tracking Data
+
+The `asc_get_current_metadata` call automatically syncs everything to the local DB: registers the app, populates active keywords, enables keyword rank tracking, and starts category chart tracking for this country. Now read that data:
+
+1. Call `aso_get_active_keywords_with_age` for this bundle_id + locale - shows how long each keyword has been active and its last scores from previous runs
+2. Call `aso_get_change_history` for this bundle_id + locale (last 90 days) - review what was changed recently and by whom
+3. Call `aso_get_rank_movements` for this bundle_id + locale (last 30 days) - check which keywords are climbing/falling in iTunes Search rank
+4. Call `aso_get_category_movements` for this bundle_id - check category chart trends
+5. Call `aso_category_snapshot` for this bundle_id - see current chart positions across all tracked countries
+
+Use ALL of this data when making optimization decisions in later phases. Display a brief summary of the tracking state to the user (e.g. "12 keywords tracked, 3 climbing, 1 falling, app ranked #47 in Productivity US").
+
+**Hysteresis rule - prevent churn:** When deciding whether to replace a keyword in later phases, apply these rules:
+- If a keyword has been active < 30 days AND its opportunity score hasn't dropped by 20+ points since last scored - do NOT replace it (it hasn't had enough time to prove itself)
+- EXCEPTION: If rank tracking shows the keyword is `falling` or `dropped_out_of_ranking`, replace it regardless of age
+- If a keyword is `climbing` in rank, do NOT replace it even if alternatives score higher - it's working
+- If a keyword is `falling` in rank AND was last changed > 14 days ago, flag it strongly for replacement
+- If the app is `climbing` in category charts, be conservative with all changes
+- If the app is `falling` across multiple category charts, recommend broader review beyond just keywords
 
 ### Phase 2 - Baseline Scoring
 
@@ -179,10 +199,12 @@ Only if the user confirmed. For EACH locale:
 **Push keywords/description (locale exists):**
 - Call `asc_update_version_localization` with the editable version's localization ID
 - Set `keywords` to the new keywords field
+- Pass `bundleId` and `source: "aso-optimize"` to enable automatic change tracking in the history DB
 
 **Push title/subtitle (if user said "yes" and locale exists):**
 - Call `asc_update_app_info_localization` with the appInfo localization ID
 - Set `name` and `subtitle`
+- Pass `bundleId` and `source: "aso-optimize"` to enable automatic change tracking in the history DB
 
 **Confirm success:**
 - Display what was updated per locale

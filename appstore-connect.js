@@ -149,6 +149,23 @@ export class AppStoreConnectClient {
     }));
   }
 
+  async getVersionLocalization(localizationId) {
+    const data = await this.#request('GET',
+      `/v1/appStoreVersionLocalizations/${localizationId}`
+    );
+    const loc = data.data;
+    return {
+      id: loc.id,
+      locale: loc.attributes.locale,
+      description: loc.attributes.description,
+      keywords: loc.attributes.keywords,
+      whatsNew: loc.attributes.whatsNew,
+      promotionalText: loc.attributes.promotionalText,
+      marketingUrl: loc.attributes.marketingUrl,
+      supportUrl: loc.attributes.supportUrl,
+    };
+  }
+
   async updateVersionLocalization(localizationId, attributes) {
     // attributes can include: description, keywords, whatsNew, promotionalText, marketingUrl, supportUrl
     const data = await this.#request('PATCH',
@@ -230,6 +247,20 @@ export class AppStoreConnectClient {
       locale: data.data.attributes.locale,
       name: data.data.attributes.name,
       subtitle: data.data.attributes.subtitle,
+    };
+  }
+
+  async getAppInfoLocalization(localizationId) {
+    const data = await this.#request('GET',
+      `/v1/appInfoLocalizations/${localizationId}`
+    );
+    const loc = data.data;
+    return {
+      id: loc.id,
+      locale: loc.attributes.locale,
+      name: loc.attributes.name,
+      subtitle: loc.attributes.subtitle,
+      privacyPolicyUrl: loc.attributes.privacyPolicyUrl,
     };
   }
 

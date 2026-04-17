@@ -4,7 +4,8 @@
   "description": "ASO keyword analysis + App Store Connect API - MCP server for Claude Code",
   "type": "module",
   "scripts": {
-    "start": "node mcp-server.js"
+    "start": "node mcp-server.js",
+    "test": "node --test test/"
   },
   "keywords": [
     "aso",
@@ -27,6 +28,7 @@
   "license": "AGPL-3.0-only",
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
+    "better-sqlite3": "^12.9.0",
     "jose": "^5.9.0"
   }
 }

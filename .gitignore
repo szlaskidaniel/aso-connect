@@ -6,3 +6,4 @@ custom.md
 .DS_Store
 *.log
 .claude/settings*.json
+.aso-connect/
